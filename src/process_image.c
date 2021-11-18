@@ -4,7 +4,9 @@
 #include <math.h>
 #include "image.h"
 
+//повертаємо піксель, проходимось по межах зображення
 float get_pixel(image im, int x, int y, int c) {
+    // TODO Fill this in
     if (x < 0) x = 0;
     if (x > im.w) x = im.w - 1;
 
@@ -14,12 +16,13 @@ float get_pixel(image im, int x, int y, int c) {
     if (c < 0) c = 0;
     if (c > im.c) c = im.c - 1;
 
-    int pixel = (im.w * im.h * c) + (im.w * y) + x;
-    // TODO Fill this in
+    int pixel = (im.w * im.h * c) + (im.w * y) + x; //28:40 - 03
     return im.data[pixel];
 }
 
+//задаємо піксель, при некоректних даних нічого не відбувається
 void set_pixel(image im, int x, int y, int c, float v) {
+    // TODO Fill this in
     if (x < 0 || x >= im.w) {
         return;
     } else if (y < 0 || y >= im.h) {
@@ -29,10 +32,9 @@ void set_pixel(image im, int x, int y, int c, float v) {
     }
     int index = (im.h * im.w * c) + (im.w * y) + x;
     im.data[index] = v;
-
-    // TODO Fill this in
 }
 
+//створюємо нову картинку з параметрами вихідної, проходимось по усім пікселям, копіюємо їх
 image copy_image(image im) {
     image copy = make_image(im.w, im.h, im.c);
     // TODO Fill this in
@@ -42,21 +44,23 @@ image copy_image(image im) {
     return copy;
 }
 
+//проходимось по усім пікселям, використовуючи luma calculation отримуємо відтінок сірого
 image rgb_to_grayscale(image im) {
     assert(im.c == 3);
     image gray = make_image(im.w, im.h, 1);
     // TODO Fill this in
     for (int i = 0; i < im.w; i++){
         for (int j = 0; j < im.h; j++){
-            float r = im.data[(i + (im.w * j))];
-            float g = im.data[((i + (im.w * j)) + (im.h * im.w) )];
-            float b = im.data[((i + (im.w * j)) + (im.h * im.w * 2))];
+            float r = get_pixel(im, i, j, 0);
+            float g = get_pixel(im, i, j, 1);
+            float b = get_pixel(im, i, j, 2);
             gray.data[i + (im.w * j)] = (0.299 * r) + (0.587 * g) + (0.114 * b);
         }
     }
     return gray;
 }
 
+//додаємо значення v - value до кожного пікселя на зображенні, щоб "зсунути" колір
 void shift_image(image im, int c, float v) {
     // TODO Fill this in
     for (int j = 0; j < im.h; j++){
@@ -67,6 +71,7 @@ void shift_image(image im, int c, float v) {
     }
 }
 
+//фіксимо занадто сильний зсув обмеженнями
 void clamp_image(image im) {
     // TODO Fill this in
     for(int i=0; i < im.w*im.h*im.c; i++){
@@ -85,6 +90,8 @@ float three_way_min(float a, float b, float c) {
     return (a < b) ? ((a < c) ? a : c) : ((b < c) ? b : c);
 }
 
+//переходимо з rgb до hsv перетвореннями, отримуємо значення пікселів, рахуємо value, saturation
+//потім визначаємо hue
 void rgb_to_hsv(image im) {
     // TODO Fill this in
     float r, g, b, h, s, v, m, c, h_primary;
@@ -127,6 +134,8 @@ void rgb_to_hsv(image im) {
     }
 }
 
+// і навпаки, зворотніми перетвореннями, спочатку отримуємо значення пікселів в hsv, потім
+// за hue визначаемо кольори
 void hsv_to_rgb(image im) {
     // TODO Fill this in
     float h, s, v, r, g, b;
@@ -194,7 +203,6 @@ void hsv_to_rgb(image im) {
                 g = m;
                 b = m;
             }
-
             set_pixel(im, i, j, 0, r);
             set_pixel(im, i, j, 1, g);
             set_pixel(im, i, j, 2, b);
