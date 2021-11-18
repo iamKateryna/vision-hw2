@@ -6,6 +6,7 @@
 #include "image.h"
 #define TWOPI 6.2831853
 
+//normalization to sum to 1
 void l1_normalize(image im)
 {
     // TODO
@@ -19,6 +20,7 @@ void l1_normalize(image im)
     }
 }
 
+//creating box filter w*w: square image with one channel with uniform entries that sum to 1
 image make_box_filter(int w)
 {
     // TODO
@@ -40,14 +42,14 @@ image make_box_filter(int w)
 image convolve_image(image im, image filter, int preserve)
 {
     // TODO
-    assert(im.c == filter.c || filter.c == 1);
-
-    image output_image;
-
+    assert(im.c == filter.c || filter.c == 1);          //If filter and im have the same number of channels
+                                                        // then it's just a normal convolution.
+    image output_image;                                 // We sum over spatial and channel dimensions
+                                                        //and produce a 1 channel image
     if (preserve)
     {
-        output_image = make_image(im.w, im.h, im.c);
-    }
+        output_image = make_image(im.w, im.h, im.c);    //If preserve is set to 1 we should produce an image
+    }                                                   // with the same number of channels as the input
     else
     {
         output_image = make_image(im.w, im.h, 1);
@@ -269,6 +271,7 @@ void feature_normalize(image im)
     }
 }
 
+//Calculating gradient magnitude and direction
 image *sobel_image(image im)
 {
     image* images = calloc(2, sizeof(image));
@@ -299,21 +302,28 @@ image *sobel_image(image im)
 
 image colorize_sobel(image im)
 {
-    image *sobel = sobel_image(im);
-    clamp_image(sobel[0]);
+    image result = copy_image(im);
 
-    image preserve = make_image(im.w, im.h, im.c);
-    image invert = make_image(im.w, im.h, im.c);
+    image *sobel_return = sobel_image(result);
+    image magnitude = sobel_return[0];
+    image direction = sobel_return[1];
 
-    feature_normalize(sobel[0]);
-    for (int xy = 0; xy < im.w*im.h; xy++) {
-        for (int i = 0; i < im.c; i++) {
-            invert.data[xy + i * im.w * im.h] = 1 - im.data[i*im.w*im.h + xy];
-            preserve.data[xy + i * im.w * im.h] = sobel[0].data[xy];
+    feature_normalize(magnitude);
+    feature_normalize(direction);
+
+    rgb_to_hsv(result);
+
+    //For channels 0, 1 (hue, saturation), we apply the
+    //direction,gradient respectively.
+    for(int y = 0; y < im.h; y++){
+        for(int x = 0; x < im.w; x++){
+            set_pixel(result, x, y, 1, get_pixel(magnitude, x, y, 0));
+            set_pixel(result, x, y, 2, get_pixel(magnitude, x, y, 0));
+            set_pixel(result, x, y, 0, get_pixel(direction, x, y, 0));
         }
     }
-    clamp_image(preserve);
-    image sub = sub_image(preserve, invert);
-    clamp_image(sub);
-    return sub;
+
+    hsv_to_rgb(result);
+
+    return result;
 }

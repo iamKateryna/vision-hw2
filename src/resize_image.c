@@ -1,20 +1,22 @@
 #include <math.h>
 #include "image.h"
 
+//nearest neighbor interpolation, using the closest int
 float nn_interpolate(image im, float x, float y, int c)
 {
     // TODO Fill in
     return get_pixel(im, roundf(x), roundf(y), c);
 }
 
+//resize using nearest neighbor interpolation
 image nn_resize(image im, int w, int h)
 {
     // TODO Fill in (also fix that first line)
     image new_image = make_image(w, h, im.c);
     float ax = ((float) im.w)/ w;
-    double bx = 0.5 * ax - 0.5;
+    float bx = 0.5 * ax - 0.5;
     float ay = ((float) im.h)/ h;
-    double by = 0.5 * ay - 0.5;
+    float by = 0.5 * ay - 0.5;
 
     for (int i = 0; i < new_image.w; i++){
         for (int j = 0; j < new_image.h; j++){
@@ -29,7 +31,7 @@ image nn_resize(image im, int w, int h)
     }
     return new_image;
 }
-
+//58:19 - 04
 float bilinear_interpolate(image im, float x, float y, int c)
 {
     // TODO
